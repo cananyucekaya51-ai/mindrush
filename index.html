@@ -1,0 +1,902 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MindRush - Brain Games</title>
+  <style>
+    :root{
+      --bg:#0b1020; --card:#121a33; --card2:#0f1630; --txt:#e9ecff; --mut:#a9b0d9;
+      --acc:#7c9bff; --good:#45d483; --bad:#ff5d7a; --warn:#ffd166;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --r:18px;
+      font-synthesis-weight:none;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background: radial-gradient(1200px 900px at 20% 10%, rgba(124,155,255,.25), transparent 60%),
+                  radial-gradient(900px 700px at 80% 20%, rgba(255,93,122,.18), transparent 60%),
+                  radial-gradient(800px 700px at 50% 95%, rgba(69,212,131,.15), transparent 60%),
+                  var(--bg);
+      color:var(--txt);
+      min-height:100vh;
+    }
+    a{color:inherit}
+    .wrap{max-width:980px; margin:0 auto; padding:22px 16px 60px}
+    .top{
+      display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:16px;
+    }
+    .brand{
+      display:flex; align-items:center; gap:12px;
+      padding:12px 14px; border-radius:999px; background:rgba(18,26,51,.6); box-shadow:var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+    .logo{
+      width:38px;height:38px;border-radius:12px;
+      background: linear-gradient(135deg, rgba(124,155,255,.95), rgba(255,93,122,.85));
+      display:grid; place-items:center; box-shadow: 0 8px 22px rgba(124,155,255,.15);
+      font-weight:800;
+    }
+    .brand h1{font-size:16px; margin:0; letter-spacing:.2px}
+    .brand p{margin:0; font-size:12px; color:var(--mut)}
+    .pill{
+      display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;
+    }
+    .chip{
+      font-size:12px; color:var(--mut); border:1px solid rgba(169,176,217,.25);
+      padding:8px 10px; border-radius:999px; background:rgba(15,22,48,.5);
+    }
+    .card{
+      background:rgba(18,26,51,.66);
+      border:1px solid rgba(169,176,217,.18);
+      border-radius:var(--r);
+      box-shadow:var(--shadow);
+      backdrop-filter: blur(12px);
+      overflow:hidden;
+    }
+    .hero{
+      padding:18px 16px;
+      display:flex; gap:14px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap;
+    }
+    .hero h2{margin:0 0 6px; font-size:18px}
+    .hero p{margin:0; color:var(--mut); font-size:13px; line-height:1.45}
+    .btn{
+      border:none; cursor:pointer; color:var(--txt); font-weight:700;
+      padding:12px 14px; border-radius:14px;
+      background: linear-gradient(135deg, rgba(124,155,255,.95), rgba(124,155,255,.55));
+      box-shadow: 0 12px 26px rgba(124,155,255,.18);
+      transition: transform .08s ease;
+      white-space:nowrap;
+    }
+    .btn:active{transform: scale(.98)}
+    .btn.secondary{
+      background: rgba(15,22,48,.65);
+      border:1px solid rgba(169,176,217,.22);
+      box-shadow:none; color:var(--txt);
+    }
+    .grid{
+      display:grid; gap:12px; padding:14px;
+      grid-template-columns: repeat(12, 1fr);
+    }
+    .tile{
+      grid-column: span 6;
+      padding:14px; border-radius:16px;
+      background: rgba(15,22,48,.55);
+      border:1px solid rgba(169,176,217,.18);
+      cursor:pointer;
+      transition: transform .08s ease, border-color .12s ease;
+      user-select:none;
+    }
+    .tile:hover{border-color: rgba(124,155,255,.55)}
+    .tile:active{transform: scale(.99)}
+    .tile h3{margin:0 0 6px; font-size:15px}
+    .tile p{margin:0; color:var(--mut); font-size:12px; line-height:1.35}
+    .tile .meta{margin-top:10px; display:flex; gap:8px; flex-wrap:wrap}
+    .tag{
+      font-size:11px; padding:6px 8px; border-radius:999px;
+      background: rgba(124,155,255,.12); border:1px solid rgba(124,155,255,.22);
+      color: #cdd6ff;
+    }
+    .tag.warn{background: rgba(255,209,102,.10); border-color: rgba(255,209,102,.22); color:#ffe7a8}
+    .tag.good{background: rgba(69,212,131,.10); border-color: rgba(69,212,131,.22); color:#bff4d7}
+    .tag.bad{background: rgba(255,93,122,.10); border-color: rgba(255,93,122,.22); color:#ffc2cf}
+
+    .view{display:none}
+    .view.active{display:block}
+
+    .gameHead{
+      padding:14px 14px 0;
+      display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
+    }
+    .gameHead h2{margin:0; font-size:16px}
+    .panel{
+      padding:14px;
+      display:grid; gap:12px;
+    }
+    .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+    input, select{
+      width:100%;
+      max-width:260px;
+      padding:12px 12px;
+      border-radius:14px;
+      border:1px solid rgba(169,176,217,.22);
+      background: rgba(15,22,48,.55);
+      color: var(--txt);
+      outline:none;
+    }
+    .hint{color:var(--mut); font-size:12px; line-height:1.45}
+    .statbar{
+      display:flex; gap:10px; flex-wrap:wrap
+    }
+    .stat{
+      padding:10px 12px; border-radius:14px;
+      background: rgba(15,22,48,.55);
+      border:1px solid rgba(169,176,217,.18);
+      font-size:12px; color:var(--mut);
+    }
+    .stat b{color:var(--txt)}
+    .board{
+      padding:14px;
+      background: rgba(15,22,48,.55);
+      border:1px solid rgba(169,176,217,.18);
+      border-radius:16px;
+    }
+
+    /* Memory */
+    .memGrid{
+      display:grid; gap:10px;
+      grid-template-columns: repeat(4, 1fr);
+    }
+    .cardBtn{
+      aspect-ratio: 1 / 1;
+      border-radius:16px;
+      border:1px solid rgba(169,176,217,.18);
+      background: rgba(18,26,51,.65);
+      color: transparent;
+      font-size: 22px;
+      font-weight: 800;
+      cursor:pointer;
+      display:grid; place-items:center;
+      transition: transform .08s ease, background .12s ease, color .12s ease, border-color .12s ease;
+      user-select:none;
+    }
+    .cardBtn:active{transform: scale(.98)}
+    .cardBtn.revealed{
+      color: var(--txt);
+      background: rgba(124,155,255,.12);
+      border-color: rgba(124,155,255,.35);
+    }
+    .cardBtn.matched{
+      color: var(--txt);
+      background: rgba(69,212,131,.12);
+      border-color: rgba(69,212,131,.35);
+      cursor: default;
+    }
+
+    /* Reaction */
+    .reactBox{
+      height: 240px;
+      border-radius: 18px;
+      border:1px solid rgba(169,176,217,.18);
+      display:grid; place-items:center;
+      font-weight:800;
+      font-size:18px;
+      user-select:none;
+      cursor:pointer;
+      background: rgba(255,93,122,.10);
+    }
+    .reactBox.ready{background: rgba(255,209,102,.10)}
+    .reactBox.go{background: rgba(69,212,131,.10)}
+
+    /* Footer */
+    .foot{
+      margin-top:14px; color:var(--mut); font-size:12px; text-align:center
+    }
+
+    @media (max-width:720px){
+      .tile{grid-column: span 12;}
+      .memGrid{grid-template-columns: repeat(4, 1fr)}
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div class="brand">
+        <div class="logo">⚡</div>
+        <div>
+          <h1>MindRush</h1>
+          <p>Brain Games • Mini challenges</p>
+        </div>
+      </div>
+      <div class="pill">
+        <div class="chip" id="chipTotal">Toplam Skor: 0</div>
+        <div class="chip" id="chipStreak">Seri: 0</div>
+      </div>
+    </div>
+
+    <!-- HOME -->
+    <section class="card view active" id="viewHome">
+      <div class="hero">
+        <div>
+          <h2>Bugün beynini çalıştır 👀</h2>
+          <p>5 mini oyun • hızlı skor • telefon uyumlu. Menüyü Play Store’a koymak için ideal (tek link).</p>
+        </div>
+        <button class="btn" id="btnDaily">Günün Karışık Modu</button>
+      </div>
+
+      <div class="grid" id="gameTiles"></div>
+
+      <div class="foot">Not: Skorlar cihazında saklanır (localStorage). İstersen AdMob eklemeye hazır yapıya çevirebiliriz.</div>
+    </section>
+
+    <!-- GAME WRAPPER -->
+    <section class="card view" id="viewGame">
+      <div class="gameHead">
+        <button class="btn secondary" id="btnBack">← Menü</button>
+        <h2 id="gameTitle">Oyun</h2>
+        <div class="statbar">
+          <div class="stat">Skor: <b id="statScore">0</b></div>
+          <div class="stat">En İyi: <b id="statBest">0</b></div>
+        </div>
+      </div>
+      <div class="panel" id="gamePanel"></div>
+    </section>
+  </div>
+
+<script>
+/* ======================
+   Storage + Global UI
+====================== */
+const LS_KEY = "mindrush_v1";
+const state = loadState();
+updateGlobalChips();
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if(!raw) return { total:0, streak:0, best:{} };
+    const obj = JSON.parse(raw);
+    return { total: obj.total||0, streak: obj.streak||0, best: obj.best||{} };
+  }catch(e){
+    return { total:0, streak:0, best:{} };
+  }
+}
+function saveState(){
+  localStorage.setItem(LS_KEY, JSON.stringify(state));
+}
+function addScore(gameId, score){
+  state.total = Math.max(0, (state.total||0) + score);
+  if(score>0) state.streak = (state.streak||0) + 1; else state.streak = 0;
+  state.best[gameId] = Math.max(state.best[gameId]||0, score);
+  saveState();
+  updateGlobalChips();
+}
+function updateGlobalChips(){
+  document.getElementById("chipTotal").textContent = "Toplam Skor: " + (state.total||0);
+  document.getElementById("chipStreak").textContent = "Seri: " + (state.streak||0);
+}
+
+/* ======================
+   Views
+====================== */
+const viewHome = document.getElementById("viewHome");
+const viewGame = document.getElementById("viewGame");
+const gamePanel = document.getElementById("gamePanel");
+const gameTitle = document.getElementById("gameTitle");
+const statScore = document.getElementById("statScore");
+const statBest  = document.getElementById("statBest");
+const btnBack   = document.getElementById("btnBack");
+
+let currentGame = null;
+let cleanupFn = null;
+
+function showHome(){
+  if(cleanupFn){ try{cleanupFn();}catch(e){} cleanupFn=null; }
+  currentGame=null;
+  viewGame.classList.remove("active");
+  viewHome.classList.add("active");
+  gamePanel.innerHTML = "";
+}
+function showGame(gameId){
+  if(cleanupFn){ try{cleanupFn();}catch(e){} cleanupFn=null; }
+  currentGame = gameId;
+  viewHome.classList.remove("active");
+  viewGame.classList.add("active");
+
+  const g = GAMES.find(x=>x.id===gameId);
+  gameTitle.textContent = g.title;
+  statScore.textContent = "0";
+  statBest.textContent = (state.best[gameId]||0);
+
+  gamePanel.innerHTML = "";
+  cleanupFn = g.mount(gamePanel, (finalScore)=>{
+    statScore.textContent = String(finalScore);
+    // best update inside addScore to keep consistent
+    addScore(gameId, finalScore);
+    statBest.textContent = String(state.best[gameId]||0);
+  });
+}
+
+btnBack.addEventListener("click", showHome);
+
+/* ======================
+   Game Tiles
+====================== */
+const tileData = [
+  {id:"memory", title:"Memory", desc:"Eşleşen kartları bul. Hızlı + dikkat.", tags:["Dikkat","Hafıza","Skor"]},
+  {id:"math", title:"Hızlı Matematik", desc:"10 soruyu en hızlı çöz. Süreye karşı.", tags:["Hız","IQ","10 soru"]},
+  {id:"reaction", title:"Refleks Testi", desc:"Yeşil olunca dokun. Çok erken dokunma!", tags:["Refleks","Zaman","Tek tık"]},
+  {id:"guess", title:"Sayı Tahmini", desc:"1–100 arası sayıyı bul. Daha az deneme daha iyi.", tags:["Mantık","Bulmaca","Kısa"]},
+  {id:"anagram", title:"Kelime Anagram", desc:"Karışık harflerden kelimeyi çöz. 60 sn.", tags:["Kelime","Hafıza","TR/EN"]}
+];
+
+const GAMES = [
+  { id:"memory", title:"Memory", mount: mountMemory },
+  { id:"math", title:"Hızlı Matematik", mount: mountMath },
+  { id:"reaction", title:"Refleks Testi", mount: mountReaction },
+  { id:"guess", title:"Sayı Tahmini", mount: mountGuess },
+  { id:"anagram", title:"Kelime Anagram", mount: mountAnagram },
+];
+
+const gameTiles = document.getElementById("gameTiles");
+tileData.forEach(t=>{
+  const el = document.createElement("div");
+  el.className = "tile";
+  el.innerHTML = `
+    <h3>${t.title}</h3>
+    <p>${t.desc}</p>
+    <div class="meta">
+      ${t.tags.map((x,i)=>{
+        const cls = i===0 ? "tag" : (i===1 ? "tag warn" : "tag good");
+        return `<span class="${cls}">${x}</span>`;
+      }).join("")}
+    </div>
+  `;
+  el.addEventListener("click", ()=>showGame(t.id));
+  gameTiles.appendChild(el);
+});
+
+document.getElementById("btnDaily").addEventListener("click", ()=>{
+  // random game start
+  const ids = tileData.map(x=>x.id);
+  showGame(ids[Math.floor(Math.random()*ids.length)]);
+});
+
+/* ======================
+   Helpers
+====================== */
+function mk(el, cls, html){
+  const e=document.createElement(el);
+  if(cls) e.className=cls;
+  if(html!==undefined) e.innerHTML=html;
+  return e;
+}
+function now(){ return performance.now(); }
+function randInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  return arr;
+}
+
+/* ======================
+   GAME 1: MEMORY
+====================== */
+function mountMemory(root, onFinish){
+  const info = mk("div","hint",`
+    <b>Nasıl oynanır:</b> 8 eşleşmeyi bul. Daha az hamle ve hızlı süre daha iyi. 
+    Skor: (1000 - süre*2 - hamle*10) min 0.
+  `);
+  const controls = mk("div","row");
+  const btnStart = mk("button","btn","Başlat / Yenile");
+  controls.appendChild(btnStart);
+
+  const board = mk("div","board");
+  const grid = mk("div","memGrid");
+  board.appendChild(grid);
+
+  const stats = mk("div","statbar");
+  const stMoves = mk("div","stat","Hamle: <b>0</b>");
+  const stTime  = mk("div","stat","Süre: <b>0.0</b>s");
+  stats.appendChild(stMoves); stats.appendChild(stTime);
+
+  root.appendChild(info);
+  root.appendChild(controls);
+  root.appendChild(stats);
+  root.appendChild(board);
+
+  let timer=null, t0=0;
+  let moves=0, matched=0;
+  let first=null, lock=false;
+  let symbols = ["🍒","⭐","🎧","🧠","⚡","🎯","🧩","🚀"];
+  let deck=[];
+  let done=false;
+
+  function stopTimer(){ if(timer){clearInterval(timer); timer=null;} }
+  function startTimer(){
+    stopTimer();
+    t0 = now();
+    timer = setInterval(()=>{
+      const s = (now()-t0)/1000;
+      stTime.querySelector("b").textContent = s.toFixed(1);
+    }, 100);
+  }
+  function reset(){
+    done=false; lock=false; first=null;
+    moves=0; matched=0;
+    stMoves.querySelector("b").textContent = "0";
+    stTime.querySelector("b").textContent = "0.0";
+    grid.innerHTML="";
+    deck = shuffle([...symbols, ...symbols].map((sym,idx)=>({id:idx, sym, revealed:false, matched:false})));
+    deck.forEach((c,idx)=>{
+      const b = mk("button","cardBtn","?");
+      b.setAttribute("aria-label","kart");
+      b.addEventListener("click", ()=>flip(idx, b));
+      grid.appendChild(b);
+    });
+    startTimer();
+  }
+  function flip(i, btn){
+    if(done) return;
+    const c = deck[i];
+    if(lock || c.matched || c.revealed) return;
+
+    c.revealed=true;
+    btn.textContent = c.sym;
+    btn.classList.add("revealed");
+
+    if(!first){
+      first = {i, btn};
+      return;
+    }
+
+    moves++;
+    stMoves.querySelector("b").textContent = String(moves);
+
+    const c2 = deck[first.i];
+    if(c2.sym === c.sym){
+      c.matched=true; c2.matched=true;
+      btn.classList.remove("revealed"); btn.classList.add("matched");
+      first.btn.classList.remove("revealed"); first.btn.classList.add("matched");
+      first=null;
+      matched++;
+      if(matched===symbols.length){
+        done=true;
+        stopTimer();
+        const seconds = (now()-t0)/1000;
+        const score = Math.max(0, Math.round(1000 - seconds*2 - moves*10));
+        onFinish(score);
+      }
+    }else{
+      lock=true;
+      const prev = first;
+      first=null;
+      setTimeout(()=>{
+        c.revealed=false; c2.revealed=false;
+        btn.textContent="?"; btn.classList.remove("revealed");
+        prev.btn.textContent="?"; prev.btn.classList.remove("revealed");
+        lock=false;
+      }, 650);
+    }
+  }
+
+  btnStart.addEventListener("click", reset);
+  reset();
+
+  return ()=>{ stopTimer(); };
+}
+
+/* ======================
+   GAME 2: FAST MATH (10 Q)
+====================== */
+function mountMath(root, onFinish){
+  const info = mk("div","hint",`
+    <b>Nasıl oynanır:</b> 10 soruyu bitir. Süre + doğruluk önemli.
+    Skor: doğru*120 - süre*8 (min 0).
+  `);
+
+  const board = mk("div","board");
+  const qEl = mk("div",null,`<div style="font-size:18px;font-weight:800;margin-bottom:10px">Hazır mısın?</div>`);
+  const row = mk("div","row");
+  const input = mk("input"); input.type="number"; input.placeholder="Cevap";
+  const btn = mk("button","btn","Başlat");
+  const btn2 = mk("button","btn secondary","Sıfırla");
+  row.appendChild(input); row.appendChild(btn); row.appendChild(btn2);
+
+  const stats = mk("div","statbar");
+  const stQ = mk("div","stat","Soru: <b>0/10</b>");
+  const stOk= mk("div","stat","Doğru: <b>0</b>");
+  const stT = mk("div","stat","Süre: <b>0.0</b>s");
+  stats.appendChild(stQ); stats.appendChild(stOk); stats.appendChild(stT);
+
+  board.appendChild(qEl);
+  root.appendChild(info);
+  root.appendChild(stats);
+  root.appendChild(board);
+  root.appendChild(row);
+
+  let timer=null, t0=0;
+  let idx=0, correct=0;
+  let a=0,b=0, op="+";
+  let running=false;
+
+  function stopTimer(){ if(timer){clearInterval(timer); timer=null;} }
+  function startTimer(){
+    stopTimer();
+    t0=now();
+    timer=setInterval(()=>{
+      stT.querySelector("b").textContent = ((now()-t0)/1000).toFixed(1);
+    },100);
+  }
+  function genQ(){
+    // mix easy/medium
+    const r = Math.random();
+    if(r<0.5){ op="+"; a=randInt(2,30); b=randInt(2,30); }
+    else if(r<0.8){ op="-"; a=randInt(10,60); b=randInt(2,40); if(b>a)[a,b]=[b,a]; }
+    else{ op="×"; a=randInt(2,12); b=randInt(2,12); }
+    qEl.innerHTML = `<div style="font-size:22px;font-weight:900">${a} ${op} ${b} = ?</div>
+                     <div class="hint" style="margin-top:8px">Enter’a bas veya “Gönder”</div>`;
+  }
+  function answer(){
+    if(!running) return;
+    const val = Number(input.value);
+    let ok=false;
+    if(op==="+") ok = (val === a+b);
+    if(op==="-" ) ok = (val === a-b);
+    if(op==="×") ok = (val === a*b);
+
+    if(ok) correct++;
+    idx++;
+
+    stOk.querySelector("b").textContent = String(correct);
+    stQ.querySelector("b").textContent = `${idx}/10`;
+    input.value="";
+
+    if(idx>=10){
+      running=false;
+      stopTimer();
+      const seconds=(now()-t0)/1000;
+      const score=Math.max(0, Math.round(correct*120 - seconds*8));
+      qEl.innerHTML = `<div style="font-size:18px;font-weight:900;margin-bottom:8px">
+        Bitti! Doğru: ${correct}/10
+      </div><div class="hint">Skorun: ${score}</div>`;
+      onFinish(score);
+      btn.textContent="Tekrar Başlat";
+      return;
+    }
+    genQ();
+  }
+
+  function start(){
+    idx=0; correct=0;
+    stOk.querySelector("b").textContent="0";
+    stQ.querySelector("b").textContent="0/10";
+    stT.querySelector("b").textContent="0.0";
+    running=true;
+    btn.textContent="Gönder";
+    genQ();
+    input.focus();
+    startTimer();
+  }
+  function reset(){
+    stopTimer();
+    running=false;
+    idx=0; correct=0;
+    stOk.querySelector("b").textContent="0";
+    stQ.querySelector("b").textContent="0/10";
+    stT.querySelector("b").textContent="0.0";
+    qEl.innerHTML = `<div style="font-size:18px;font-weight:800;margin-bottom:6px">Hızlı Matematik</div>
+                     <div class="hint">Başlat’a bas, sonra cevapları gir.</div>`;
+    btn.textContent="Başlat";
+    input.value="";
+  }
+
+  btn.addEventListener("click", ()=> running ? answer() : start());
+  btn2.addEventListener("click", reset);
+  input.addEventListener("keydown",(e)=>{ if(e.key==="Enter") { e.preventDefault(); running ? answer() : start(); } });
+
+  reset();
+  return ()=>{ stopTimer(); };
+}
+
+/* ======================
+   GAME 3: REACTION
+====================== */
+function mountReaction(root, onFinish){
+  const info = mk("div","hint",`
+    <b>Nasıl oynanır:</b> Kutuyu başlat. Kırmızı → bekle, sarı → hazır, yeşil → hemen dokun.
+    5 tur ortalamasıyla skor.
+    Skor: max(0, 1000 - ortalama_ms).
+  `);
+
+  const stats = mk("div","statbar");
+  const stRound = mk("div","stat","Tur: <b>0/5</b>");
+  const stAvg   = mk("div","stat","Ortalama: <b>—</b> ms");
+  stats.appendChild(stRound); stats.appendChild(stAvg);
+
+  const box = mk("div","reactBox","Başlatmak için dokun");
+  const row = mk("div","row");
+  const btnReset = mk("button","btn secondary","Sıfırla");
+  row.appendChild(btnReset);
+
+  root.appendChild(info);
+  root.appendChild(stats);
+  root.appendChild(box);
+  root.appendChild(row);
+
+  let phase="idle"; // idle, waiting, ready, go
+  let timeout=null;
+  let goTime=0;
+  let round=0;
+  let times=[];
+  let done=false;
+
+  function clearT(){ if(timeout){clearTimeout(timeout); timeout=null;} }
+  function reset(){
+    done=false;
+    clearT();
+    phase="idle";
+    round=0; times=[];
+    stRound.querySelector("b").textContent="0/5";
+    stAvg.querySelector("b").textContent="—";
+    box.className="reactBox";
+    box.textContent="Başlatmak için dokun";
+  }
+  function startRound(){
+    phase="waiting";
+    box.className="reactBox";
+    box.textContent="Bekle...";
+    const delay = randInt(800, 2500);
+    clearT();
+    timeout = setTimeout(()=>{
+      phase="ready";
+      box.classList.add("ready");
+      box.textContent="Hazır...";
+      timeout = setTimeout(()=>{
+        phase="go";
+        box.classList.remove("ready");
+        box.classList.add("go");
+        box.textContent="ŞİMDİ!";
+        goTime = now();
+      }, randInt(500, 1200));
+    }, delay);
+  }
+  function tap(){
+    if(done) return;
+    if(phase==="idle"){
+      startRound();
+      return;
+    }
+    if(phase==="waiting" || phase==="ready"){
+      // too early
+      clearT();
+      phase="idle";
+      times.push(1200); // penalty
+      round++;
+      stRound.querySelector("b").textContent = `${round}/5`;
+      box.className="reactBox";
+      box.textContent="Çok erken! Yeniden dokun";
+      if(round>=5) finish();
+      return;
+    }
+    if(phase==="go"){
+      const ms = Math.round(now()-goTime);
+      times.push(ms);
+      round++;
+      stRound.querySelector("b").textContent = `${round}/5`;
+      box.className="reactBox";
+      box.textContent = `Süren: ${ms} ms • Devam için dokun`;
+      phase="idle";
+      if(round>=5) finish();
+      return;
+    }
+  }
+  function finish(){
+    done=true;
+    const avg = Math.round(times.reduce((a,b)=>a+b,0)/times.length);
+    stAvg.querySelector("b").textContent = String(avg);
+    const score = Math.max(0, Math.round(1000 - avg));
+    box.textContent = `Bitti! Ortalama: ${avg} ms • Skor: ${score}`;
+    onFinish(score);
+  }
+
+  box.addEventListener("click", tap);
+  btnReset.addEventListener("click", reset);
+  reset();
+
+  return ()=>{ clearT(); };
+}
+
+/* ======================
+   GAME 4: NUMBER GUESS
+====================== */
+function mountGuess(root, onFinish){
+  const info = mk("div","hint",`
+    <b>Nasıl oynanır:</b> 1–100 arasındaki gizli sayıyı bul.
+    Skor: max(0, 1000 - deneme*80).
+  `);
+
+  const stats = mk("div","statbar");
+  const stTry = mk("div","stat","Deneme: <b>0</b>");
+  const stMsg = mk("div","stat","İpucu: <b>—</b>");
+  stats.appendChild(stTry); stats.appendChild(stMsg);
+
+  const board = mk("div","board");
+  const row = mk("div","row");
+  const input = mk("input"); input.type="number"; input.min="1"; input.max="100"; input.placeholder="1-100";
+  const btnGo = mk("button","btn","Tahmin Et");
+  const btnNew= mk("button","btn secondary","Yeni Oyun");
+  row.appendChild(input); row.appendChild(btnGo); row.appendChild(btnNew);
+
+  board.innerHTML = `<div style="font-size:16px;font-weight:900;margin-bottom:6px">Sayı Tahmini</div>
+                     <div class="hint">Bir sayı tuttum. Bulabilir misin?</div>`;
+
+  root.appendChild(info);
+  root.appendChild(stats);
+  root.appendChild(board);
+  root.appendChild(row);
+
+  let target=0, tries=0, done=false;
+
+  function newGame(){
+    target = randInt(1,100);
+    tries=0; done=false;
+    stTry.querySelector("b").textContent="0";
+    stMsg.querySelector("b").textContent="—";
+    board.innerHTML = `<div style="font-size:16px;font-weight:900;margin-bottom:6px">Sayı Tahmini</div>
+                       <div class="hint">1–100 arası bir sayı tuttum.</div>`;
+    input.value="";
+    input.focus();
+  }
+  function guess(){
+    if(done) return;
+    const val = Number(input.value);
+    if(!Number.isFinite(val) || val<1 || val>100){
+      stMsg.querySelector("b").textContent="1-100 gir";
+      return;
+    }
+    tries++;
+    stTry.querySelector("b").textContent=String(tries);
+    if(val===target){
+      done=true;
+      const score = Math.max(0, 1000 - tries*80);
+      stMsg.querySelector("b").textContent="Doğru!";
+      board.innerHTML = `<div style="font-size:18px;font-weight:900;margin-bottom:6px">🎉 Bildin!</div>
+                         <div class="hint">Sayı: <b>${target}</b> • Deneme: <b>${tries}</b> • Skor: <b>${score}</b></div>`;
+      onFinish(score);
+      return;
+    }
+    stMsg.querySelector("b").textContent = val<target ? "Daha büyük" : "Daha küçük";
+  }
+
+  btnGo.addEventListener("click", guess);
+  btnNew.addEventListener("click", newGame);
+  input.addEventListener("keydown",(e)=>{ if(e.key==="Enter"){ e.preventDefault(); guess(); } });
+
+  newGame();
+  return ()=>{};
+}
+
+/* ======================
+   GAME 5: ANAGRAM (TR)
+====================== */
+function mountAnagram(root, onFinish){
+  const info = mk("div","hint",`
+    <b>Nasıl oynanır:</b> Karışık harflerden kelimeyi bul. 60 saniyede kaç tane?
+    Skor: doğru*150 (yanlış -50, min 0).
+  `);
+
+  const words = [
+    "zihin","zeka","hafiza","bulmaca","odak","hiz","renk","mantik","oyun","dikkat",
+    "puzzle","memory","brain","focus","speed","logic"
+  ].map(w=>w.toLowerCase());
+
+  const stats = mk("div","statbar");
+  const stTime = mk("div","stat","Kalan: <b>60</b> sn");
+  const stOk   = mk("div","stat","Doğru: <b>0</b>");
+  const stBad  = mk("div","stat","Yanlış: <b>0</b>");
+  stats.appendChild(stTime); stats.appendChild(stOk); stats.appendChild(stBad);
+
+  const board = mk("div","board");
+  const wEl = mk("div",null,"");
+  const hint = mk("div","hint","Kelimeyi yaz ve gönder.");
+  const row = mk("div","row");
+  const input = mk("input"); input.placeholder="Cevap";
+  const btn = mk("button","btn","Başlat");
+  const btnSkip = mk("button","btn secondary","Pas");
+  row.appendChild(input); row.appendChild(btn); row.appendChild(btnSkip);
+
+  board.appendChild(wEl);
+  board.appendChild(hint);
+
+  root.appendChild(info);
+  root.appendChild(stats);
+  root.appendChild(board);
+  root.appendChild(row);
+
+  let timer=null, left=60;
+  let ok=0, bad=0;
+  let current="";
+  let running=false;
+  let finished=false;
+
+  function stop(){ if(timer){clearInterval(timer); timer=null;} }
+  function scramble(word){
+    const arr = word.split("");
+    for(let i=0;i<6;i++) shuffle(arr);
+    return arr.join("");
+  }
+  function nextWord(){
+    current = words[randInt(0, words.length-1)];
+    let s = scramble(current);
+    if(s===current) s = scramble(current);
+    wEl.innerHTML = `<div style="font-size:20px;font-weight:900;letter-spacing:1px">${s}</div>
+                     <div class="hint" style="margin-top:8px">Harf sayısı: ${current.length}</div>`;
+    input.value="";
+    input.focus();
+  }
+  function start(){
+    finished=false;
+    running=true;
+    ok=0; bad=0; left=60;
+    stOk.querySelector("b").textContent="0";
+    stBad.querySelector("b").textContent="0";
+    stTime.querySelector("b").textContent=String(left);
+    btn.textContent="Gönder";
+    nextWord();
+    stop();
+    timer=setInterval(()=>{
+      left--;
+      stTime.querySelector("b").textContent=String(left);
+      if(left<=0){
+        finish();
+      }
+    },1000);
+  }
+  function submit(){
+    if(!running || finished) return;
+    const ans = (input.value||"").trim().toLowerCase();
+    if(!ans) return;
+    if(ans===current){
+      ok++;
+      stOk.querySelector("b").textContent=String(ok);
+    }else{
+      bad++;
+      stBad.querySelector("b").textContent=String(bad);
+    }
+    nextWord();
+  }
+  function skip(){
+    if(!running || finished) return;
+    bad++;
+    stBad.querySelector("b").textContent=String(bad);
+    nextWord();
+  }
+  function finish(){
+    finished=true;
+    running=false;
+    stop();
+    const score = Math.max(0, ok*150 - bad*50);
+    wEl.innerHTML = `<div style="font-size:18px;font-weight:900;margin-bottom:6px">Bitti!</div>
+                     <div class="hint">Doğru: <b>${ok}</b> • Yanlış: <b>${bad}</b> • Skor: <b>${score}</b></div>`;
+    onFinish(score);
+    btn.textContent="Tekrar Başlat";
+  }
+
+  btn.addEventListener("click", ()=> running ? submit() : start());
+  btnSkip.addEventListener("click", skip);
+  input.addEventListener("keydown",(e)=>{ if(e.key==="Enter"){ e.preventDefault(); running ? submit() : start(); } });
+
+  // init text
+  wEl.innerHTML = `<div style="font-size:16px;font-weight:900;margin-bottom:6px">Kelime Anagram</div>
+                   <div class="hint">Başlat’a bas.</div>`;
+  return ()=>{ stop(); };
+}
+</script>
+</body>
+</html>
